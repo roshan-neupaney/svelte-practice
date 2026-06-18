@@ -8,10 +8,19 @@ export const GET: RequestHandler = async({cookies}) => {
 
 	const state = arctic.generateState();
 	const codeVerifier = arctic.generateCodeVerifier();
-	const scopes = ["openid", "profile"];
+	const scopes = ["email", "profile"];
 	const url = google.createAuthorizationURL(state, codeVerifier, scopes);
+
 	cookies.set("google_oauth_state", state, {
-		secure: true,
+		secure: false,
+		path: "/",
+		httpOnly: true,
+		maxAge: 60 * 10
+	});
+
+	// store codeVerifier so callback can use it to exchange the code
+	cookies.set("google_code_verifier", codeVerifier, {
+		secure: false,
 		path: "/",
 		httpOnly: true,
 		maxAge: 60 * 10
