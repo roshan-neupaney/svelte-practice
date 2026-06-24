@@ -1,60 +1,29 @@
-// import { RegisterSchema, type RegisterFormData } from '$lib/services/register/register.validation';
-// import { formatErrors } from '$lib/utils/zod';
 import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { superValidate } from 'sveltekit-superforms';
+import { superValidate, message } from 'sveltekit-superforms';
 import { RegisterSchema } from '$lib/services/register/register.validation';
 import { zod4 } from 'sveltekit-superforms/adapters';
-// import { PostMethod } from '$lib/constants/methods';
-// import { RegisterApi } from '$lib/constants/endpoints';
 
 export const load: PageServerLoad = async () => {
 	return {
-		form: await superValidate(zod4(RegisterSchema)),
+		form: await superValidate(zod4(RegisterSchema))
 	};
 };
 
 export const actions = {
-	default: async ({ request, fetch }) => {
-		try {
+	default: async ({ request }) => {
+		const form = await superValidate(request, zod4(RegisterSchema));
 
-			// const requestData = await request.formData();
-
-			// const formData = {
-			// 	full_name: requestData.get('full_name'),
-			// 	email: requestData.get('email'),
-			// 	password: requestData.get('password'),
-			// 	confirm_password: requestData.get('confirm_password')
-			// };
-
-			// const validatedData = RegisterSchema.safeParse(formData);
-			// if (!validatedData.success) {
-			// 	return fail(400, {
-			// 		errors: formatErrors(validatedData.error)
-			// 	});
-			// }
-
-			// const res = await PostMethod<RegisterFormData, unknown>(
-			// 	RegisterApi,
-			// 	validatedData.data,
-			// 	fetch
-			// );
-			// if (res.status === 201) {
-			// 	return {
-			// 		message: res.message,
-			// 		success: true
-			// 	};
-			// } else {
-			// 	return fail(400, {
-			// 		message: res.message,
-			// 		success: false
-			// 	});
-			// }
-		} catch (error) {
-			return fail(400, {
-				message: 'Something went wrong!',
-				success: false
-			});
+		if (!form.valid) {
+			return fail(400, { form });
 		}
+
+		// TODO: call registration API here
+		// const res = await PostMethod(RegisterApi, form.data, fetch);
+		// if (res.status !== 201) {
+		//     return message(form, { type: 'error', text: res.message }, { status: 400 });
+		// }
+
+		return message(form, { type: 'success', text: 'Account created! Please sign in.' });
 	}
 } satisfies Actions;

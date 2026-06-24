@@ -1,29 +1,22 @@
 <script lang="ts">
-	// import { enhance } from '$app/forms';
-	import { goto } from '$app/navigation';
+	import { untrack } from 'svelte';
+	import { superForm } from 'sveltekit-superforms';
+	import { zod4Client } from 'sveltekit-superforms/adapters';
+	import * as Form from 'formsnap';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as Card from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input/index.js';
-	import { Label } from '$lib/components/ui/label/index.js';
 	import { ZapIcon } from '@lucide/svelte';
-	// import { toast } from 'svelte-sonner';
-	import type { PageProps } from './$types';
-  import { zod4Client } from 'sveltekit-superforms/adapters';
-  import { superForm } from 'sveltekit-superforms';
-  import { RegisterSchema } from '$lib/services/register/register.validation.js';
+	import { RegisterSchema } from '$lib/services/register/register.validation.js';
+	import type { PageData } from './$types';
 
-	// let { form }: PageProps = $props();
-	// $effect(() => {
-	// 	if (form?.success) {
-	// 		// toast.success(form.message);
-	// 		goto('/login', { replaceState: true });
-	// 	}
-	// });
-	let { data } = $props();
-	const form = superForm(data.form, {
-		validators: zod4Client(RegisterSchema),
+	let { data }: { data: PageData } = $props();
+
+	const form = superForm(untrack(() => data.form), {
+		validators: zod4Client(RegisterSchema)
 	});
-	const { form: formData, enhance } = form;
+
+	const { form: formData, enhance, message } = form;
 </script>
 
 <div class="bg-background flex min-h-screen items-center justify-center p-4">
@@ -38,59 +31,86 @@
 			</div>
 			<Card.Title class="text-2xl font-bold">Create an account</Card.Title>
 		</Card.Header>
+
 		<Card.Content>
-			{#if form?.message}
-				<div class="bg-destructive/10 text-destructive mb-4 rounded-md p-3 text-sm">
-					{form.message}
+			{#if $message}
+				<div
+					class="mb-4 rounded-md p-3 text-sm {$message.type === 'error'
+						? 'bg-destructive/10 text-destructive'
+						: 'bg-green-100 text-green-800'}"
+				>
+					{$message.text}
 				</div>
 			{/if}
+
 			<form method="POST" use:enhance class="space-y-4">
-				<div class="space-y-2">
-					<Label for="name">Full Name</Label>
-					<Input
-						id="full_name"
-						name="full_name"
-						type="text"
-						placeholder="John Doe"
-						required
-						autocomplete="name"
-					/>
-				</div>
-				<div class="space-y-2">
-					<Label for="email">Email</Label>
-					<Input
-						id="email"
-						name="email"
-						type="email"
-						placeholder="john@example.com"
-						required
-						autocomplete="email"
-					/>
-				</div>
-				<div class="space-y-2">
-					<Label for="password">Password</Label>
-					<Input
-						id="password"
-						name="password"
-						type="password"
-						placeholder="8+ characters"
-						required
-						autocomplete="new-password"
-					/>
-				</div>
-				<div class="space-y-2">
-					<Label for="confirm_password">Confirm Password</Label>
-					<Input
-						id="confirm_password"
-						name="confirm_password"
-						type="password"
-						placeholder="Re-enter your password"
-						required
-					/>
-				</div>
+				<Form.Field {form} name="full_name">
+					<Form.Control>
+						{#snippet children({ props })}
+							<Form.Label>Full Name</Form.Label>
+							<Input
+								{...props}
+								bind:value={$formData.full_name}
+								type="text"
+								placeholder="John Doe"
+								autocomplete="name"
+							/>
+						{/snippet}
+					</Form.Control>
+					<Form.FieldErrors class="text-destructive text-xs" />
+				</Form.Field>
+
+				<Form.Field {form} name="email">
+					<Form.Control>
+						{#snippet children({ props })}
+							<Form.Label>Email</Form.Label>
+							<Input
+								{...props}
+								bind:value={$formData.email}
+								type="email"
+								placeholder="john@example.com"
+								autocomplete="email"
+							/>
+						{/snippet}
+					</Form.Control>
+					<Form.FieldErrors class="text-destructive text-xs" />
+				</Form.Field>
+
+				<Form.Field {form} name="password">
+					<Form.Control>
+						{#snippet children({ props })}
+							<Form.Label>Password</Form.Label>
+							<Input
+								{...props}
+								bind:value={$formData.password}
+								type="password"
+								placeholder="8+ characters"
+								autocomplete="new-password"
+							/>
+						{/snippet}
+					</Form.Control>
+					<Form.FieldErrors class="text-destructive text-xs" />
+				</Form.Field>
+
+				<Form.Field {form} name="confirm_password">
+					<Form.Control>
+						{#snippet children({ props })}
+							<Form.Label>Confirm Password</Form.Label>
+							<Input
+								{...props}
+								bind:value={$formData.confirm_password}
+								type="password"
+								placeholder="Re-enter your password"
+							/>
+						{/snippet}
+					</Form.Control>
+					<Form.FieldErrors class="text-destructive text-xs" />
+				</Form.Field>
+
 				<Button type="submit" class="w-full">Create account</Button>
 			</form>
 		</Card.Content>
+
 		<Card.Footer class="justify-center">
 			<p class="text-muted-foreground text-sm">
 				Already have an account?

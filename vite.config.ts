@@ -1,9 +1,21 @@
+import path from 'node:path';
 import adapter from '@sveltejs/adapter-auto';
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+	resolve: {
+		alias: [
+			{
+				// superforms/adapters barrel imports typebox (and typebox/compile, typebox/format),
+				// but typebox v1.3.0 no longer exports Type.Base. Shim all sub-paths so the
+				// barrel loads without crashing; we only use the zod4 adapter.
+				find: /^typebox(\/.*)?$/,
+				replacement: `${path.resolve('./src/lib/typebox-shim')}$1`
+			}
+		]
+	},
 	plugins: [
 		tailwindcss(),
 		sveltekit({
